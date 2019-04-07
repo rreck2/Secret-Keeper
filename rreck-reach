@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+
+import requests
+import random
+
+def player_letter(secret_word,player_choice,correct_previous_guesses,incorrect_previous_guesses,guess_count):
+    if player_choice in secret_word:  
+        correct_previous_guesses += player_choice     
+    else:
+        incorrect_previous_guesses += player_choice
+        #add one guess to the guess count
+        guess_count -=1
+    return correct_previous_guesses,incorrect_previous_guesses,guess_count
+        
+def display(secret_word,correct_previous_guesses):
+    for letter in secret_word:
+        if letter in correct_previous_guesses:
+            print(letter, end = " ")
+        else:
+            print("_", end= " ")
+    print("\n")
+
+def main():
+    print("Welcome to Secret Keeper! You have 6 chances to guess the word!")
+    play = 'y'
+    while play == 'y':
+        url = 'http://app.linkedin-reach.io/words'
+        response = requests.get(url)
+        #split response list
+        data = response.text.split('\n')
+        #define secret-keeper word
+        secret_word = random.choice(data)
+        correct_previous_guesses = ''
+        incorrect_previous_guesses = ''
+        guess_count = 6
+        print("_ "*len(secret_word))
+        #test
+        #print(secret_word)
+        while guess_count > 0:
+            print("You have ", guess_count, " guesses left! \n")
+
+            player_choice=input("Please choose a letter: ")
+            player_choice=player_choice.lower()
+
+            while player_choice in correct_previous_guesses or player_choice in incorrect_previous_guesses or not player_choice.isalpha():
+                player_choice=input("Please choose a new letter: ")
+                player_choice=player_choice.lower()
+
+            correct_previous_guesses, incorrect_previous_guesses, guess_count = player_letter(secret_word,player_choice,correct_previous_guesses,incorrect_previous_guesses,guess_count)
+            display(secret_word,correct_previous_guesses)
+            print("Incorrect Previous Guesses: ", ''.join(sorted(incorrect_previous_guesses)))
+
+            if set(correct_previous_guesses) == set(secret_word):
+                print("You win!")
+                break
+                
+        if guess_count == 0:
+            print("You lose! The word was", secret_word)
+        
+        play = input("Do you want to play again? (y or n) ")
+    
+
+if __name__ == '__main__':
+    main()
