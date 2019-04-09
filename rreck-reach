@@ -26,7 +26,7 @@ def main():
     while play == 'y' or play == 'yes':
         user_difficulty = ''
         while not user_difficulty.isdigit() or not (user_difficulty > 0 and user_difficulty < 11):
-            user_difficulty = input("Enter a difficulty between 1 to 10. ")
+            user_difficulty = input("Enter a level of difficulty between 1 to 10. ")
             if user_difficulty.isdigit():
                 user_difficulty = int(user_difficulty)
                 break
