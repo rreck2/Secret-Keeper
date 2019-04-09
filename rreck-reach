@@ -23,13 +23,24 @@ def display(secret_word,correct_previous_guesses):
 def main():
     print("Welcome to Secret Keeper! You have 6 chances to guess the word!")
     play = 'y'
-    while play == 'y':
-        url = 'http://app.linkedin-reach.io/words'
-        response = requests.get(url)
+    while play == 'y' or play == 'yes':
+        user_difficulty = ''
+        while not user_difficulty.isdigit() or not (user_difficulty > 0 and user_difficulty < 11):
+            user_difficulty = input("Enter a difficulty between 1 to 10. ")
+            if user_difficulty.isdigit():
+                user_difficulty = int(user_difficulty)
+                break
+            else:
+                user_difficulty = ''
+                continue
+
+        URL = 'http://app.linkedin-reach.io/words'
+        response = requests.get(url = URL, params = {'difficulty':user_difficulty})
         #split response list
         data = response.text.split('\n')
         #define secret-keeper word
         secret_word = random.choice(data)
+        # empty strings for guesses
         correct_previous_guesses = ''
         incorrect_previous_guesses = ''
         guess_count = 6
@@ -38,26 +49,59 @@ def main():
         #print(secret_word)
         while guess_count > 0:
             print("You have ", guess_count, " guesses left! \n")
+            
+            if guess_count == 6:
+                print("    ____     \n   |    |   \n   |    |         \n   |         \n   |         \n   |         \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            elif guess_count == 5:
+                print("    ____     \n   |    |   \n   |    |         \n   |    o    \n   |         \n   |         \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            elif guess_count == 4:
+                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |    |   \n   |         \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            elif guess_count == 3:
+                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|   \n   |        \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            elif guess_count == 2:
+                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|\   \n   |        \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            elif guess_count == 1:
+                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|\   \n   |   /    \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            
 
+            word_choice = ''
+        
+            while not (word_choice == 'y' or word_choice == 'yes' or word_choice == 'n' or word_choice == 'no'):
+                word_choice = input("Would you like to guess the word? (y or n) ")
+            if word_choice == 'y' or word_choice == 'yes':
+                word_guess = input("What is your guess for the word? ")
+                if word_guess.lower() == secret_word:
+                    print("You win!")
+                    break
+                else:
+                    print("That wasn't it.")
+                    guess_count -= 1
+                    # if wrong forces code to the beginning of loop
+                    continue
+                    
             player_choice=input("Please choose a letter: ")
             player_choice=player_choice.lower()
 
             while player_choice in correct_previous_guesses or player_choice in incorrect_previous_guesses or not player_choice.isalpha():
                 player_choice=input("Please choose a new letter: ")
                 player_choice=player_choice.lower()
-
+            # handles the letter the player inputted, outputs the new string of correct_previous_guesses, incorrect_previous_guesses, and updated guess_count
             correct_previous_guesses, incorrect_previous_guesses, guess_count = player_letter(secret_word,player_choice,correct_previous_guesses,incorrect_previous_guesses,guess_count)
             display(secret_word,correct_previous_guesses)
+            # sorts, and then returns the incorrect guesses back into the string
             print("Incorrect Previous Guesses: ", ''.join(sorted(incorrect_previous_guesses)))
-
+            # set() used to handle repeated letters, checks if each letter corresponds with correctly guesses letters
             if set(correct_previous_guesses) == set(secret_word):
                 print("You win!")
                 break
                 
         if guess_count == 0:
+            print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|\   \n   |   / \    \n  _|_        \n |   |______ \n |          |\n |__________| ")
             print("You lose! The word was", secret_word)
         
         play = input("Do you want to play again? (y or n) ")
+        while not (play == 'y' or play == 'yes' or play == 'n' or play == 'no'):
+            play = input("Do you want to play again? (y or n) ")
     
 
 if __name__ == '__main__':
