@@ -32,7 +32,7 @@ def player_score(file, username, user_difficulty, guess_count):
     #create a list of tuples of the key-value pairs (user-score pairs) in the dictionary, sorted by the values in reverse order
     sorted_highscores = sorted(highscores.items(),key=operator.itemgetter(1),reverse=True) #the sorted function takes in the list to sort, here the unorderd list of key-value pairs as tuples from the dictionary, and the key with which to sort them, here the second item in each tuple, that is the value or score
     print("Your Score: ", score)  
-    print("High Scores")
+    print("High Scores:")
     for (user, highscore) in sorted_highscores:
         print(user, highscore)
 
@@ -72,7 +72,6 @@ def display_board(secret_word,correct_previous_guesses):
 def main():
     print(" ________________________________________\n|                                        |\n|                                        |\n|     You Stumble Upon a Hidden Room     |\n| While Searching For an Ancient Artifact|\n|                                        |\n|                                        |\n|       Suddenly, The Door Slams         |\n|            Shut Behind You             |\n|                                        |\n|                                        |\n|     You Notice Instructions Written    |\n|       on the Far Side of the Room      |\n|                                        |\n|   As You Cross The Room To Read Them,  |\n|         Water Begins to Slowly         |\n|          Rise From The Floor...        |\n|                                        |\n|                                        |\n|   'Guess the Word Within Six Tries     |\n|           and You May Live...'         |\n|                                        |\n|                                        |\n|                                        |\n|        Welcome To Secret Keeper!       |\n|                                        |\n|                                        |\n ________________________________________\n\n")
 
-    #You have 6 chances to guess the word!
     play = 'y'
     while play == 'y' or play == 'yes':
         username = input("What is your username? ")
@@ -89,10 +88,10 @@ def main():
 
         URL = 'http://app.linkedin-reach.io/words'
         response = requests.get(url = URL, params = {'difficulty':user_difficulty})
-        #split response list
-        data = response.text.split('\n')
-        #define secret-keeper word
-        secret_word = random.choice(data)
+        
+        data = response.text.split('\n')   #split response list
+        
+        secret_word = random.choice(data)   #define secret-keeper word
         # empty strings for guesses
         correct_previous_guesses = ''
         incorrect_previous_guesses = ''
@@ -113,7 +112,7 @@ def main():
                     print("You win!")
                     break
                 else:
-                    print("That wasn't it.")
+                    print("That wasn't it. The water continues to rise...")
                     guess_count -= 1
                     # if wrong forces code to the beginning of loop
                     continue
