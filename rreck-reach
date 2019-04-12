@@ -1,8 +1,56 @@
 #!/usr/bin/env python3
 
-import requests
-import random
 
+import os, json, operator, requests, random
+
+
+FILEPATH = './' #hardcodes filepath, which is set to current directory
+FILENAME = "highscores.txt" #hardcodes file name 
+FILE = FILEPATH + FILENAME 
+
+def player_score(file, username, user_difficulty, guess_count):
+    """Function for calculating, recording, and displaying score and highscores"""
+    score = user_difficulty * guess_count
+    if not os.path.isfile(file): #if file does not exist
+        with open(file, 'w') as f: #create file, opening it in write mode
+            highscores = {username: score} #create dictionary with username as key and score as value
+            f.write(json.dumps(highscores)) #use json to write highscores dictionary to a string, write that string to the file
+    else: #if file does exist
+        with open(file, 'r') as f: #create file, opening it in read mode
+            read_data = f.read() #save the data in the file to read_data
+            if read_data: #if the file has content
+                highscores = json.loads(read_data) #load dictionary in file into highscores
+                if username in highscores.keys(): #if current user in highscores dictionary
+                    if score > highscores[username]: #if current score greater than that user's highscore
+                        highscores[username] = score #save the new highscore in the dictionary
+                else: #if the current user not in the highscores dictionary
+                    highscores[username] = score #write the current user and their score as key-value pair to the highscores dictionary
+            else:  #if the file has no content
+               highscores[username] = score #write the current user and their score as key-value pair to the highscores dictionary
+        with open(file, 'w') as f: #reopen the file in write mode, erasing what was previously in it
+            f.write(json.dumps(highscores)) #use json to write highscores dictionary to a string, write that string to the file
+    #create a list of tuples of the key-value pairs (user-score pairs) in the dictionary, sorted by the values in reverse order
+    sorted_highscores = sorted(highscores.items(),key=operator.itemgetter(1),reverse=True) #the sorted function takes in the list to sort, here the unorderd list of key-value pairs as tuples from the dictionary, and the key with which to sort them, here the second item in each tuple, that is the value or score
+    print("Your Score: ", score)  
+    print("High Scores")
+    for (user, highscore) in sorted_highscores:
+        print(user, highscore)
+
+def draw_trap(guess_count):
+    if guess_count == 6:
+        print("|                          |\n|            O             |\n|           /|\            |\n|          / | \           |\n|           / \            |\n|          /   \           |")
+    elif guess_count == 5:
+       print("|                          |\n|            O             |\n|           /|\            |\n|          / | \           |\n|           / \            |\n|~~~~~~~~~~/~~~\~~~~~~~~~~~|")
+    elif guess_count == 4:
+        print("|                          |\n|            O             |\n|           /|\            |\n|          / | \           |\n|~~~~~~~~~~~/~\~~~~~~~~~~~~|\n|~~~~~~~~~~/~~~\~~~~~~~~~~~|")
+    elif guess_count == 3:
+        print("|                          |\n|            O             |\n|           /|\            |\n|~~~~~~~~~~/~|~\~~~~~~~~~~~|\n|~~~~~~~~~~~/~\~~~~~~~~~~~~|\n|~~~~~~~~~~/~~~\~~~~~~~~~~~|")
+    elif guess_count == 2:
+        print("|                          |\n|            O             |\n|~~~~~~~~~~~/|\~~~~~~~~~~~~|\n|~~~~~~~~~~/~|~\~~~~~~~~~~~|\n|~~~~~~~~~~~/~\~~~~~~~~~~~~|\n|~~~~~~~~~~/~~~\~~~~~~~~~~~|")
+    elif guess_count == 1:
+        print("|                          |\n|~~~~~~~~~~~~O~~~~~~~~~~~~~|\n|~~~~~~~~~~~/|\~~~~~~~~~~~~|\n|~~~~~~~~~~/~|~\~~~~~~~~~~~|\n|~~~~~~~~~~~/~\~~~~~~~~~~~~|\n|~~~~~~~~~~/~~~\~~~~~~~~~~~|")
+        
+        
 def player_letter(secret_word,player_choice,correct_previous_guesses,incorrect_previous_guesses,guess_count):
     if player_choice in secret_word:  
         correct_previous_guesses += player_choice     
@@ -12,7 +60,7 @@ def player_letter(secret_word,player_choice,correct_previous_guesses,incorrect_p
         guess_count -=1
     return correct_previous_guesses,incorrect_previous_guesses,guess_count
         
-def display(secret_word,correct_previous_guesses):
+def display_board(secret_word,correct_previous_guesses):
     for letter in secret_word:
         if letter in correct_previous_guesses:
             print(letter, end = " ")
@@ -20,13 +68,18 @@ def display(secret_word,correct_previous_guesses):
             print("_", end= " ")
     print("\n")
 
+
 def main():
-    print("Welcome to Secret Keeper! You have 6 chances to guess the word!")
+    print(" ________________________________________\n|                                        |\n|                                        |\n|     You Stumble Upon a Hidden Room     |\n| While Searching For an Ancient Artifact|\n|                                        |\n|                                        |\n|       Suddenly, The Door Slams         |\n|            Shut Behind You             |\n|                                        |\n|                                        |\n|     You Notice Instructions Written    |\n|       on the Far Side of the Room      |\n|                                        |\n|   As You Cross The Room To Read Them,  |\n|         Water Begins to Slowly         |\n|          Rise From The Floor...        |\n|                                        |\n|                                        |\n|   'Guess the Word Within Six Tries     |\n|           and You May Live...'         |\n|                                        |\n|                                        |\n|                                        |\n|        Welcome To Secret Keeper!       |\n|                                        |\n|                                        |\n ________________________________________\n\n")
+
+    #You have 6 chances to guess the word!
     play = 'y'
     while play == 'y' or play == 'yes':
+        username = input("What is your username? ")
+        print("Welcome, ", username)
         user_difficulty = ''
         while not user_difficulty.isdigit() or not (user_difficulty > 0 and user_difficulty < 11):
-            user_difficulty = input("Enter a level of difficulty between 1 to 10. ")
+            user_difficulty = input("\nEnter a level of difficulty between 1 and 10 with 10 being the highest level: ")
             if user_difficulty.isdigit():
                 user_difficulty = int(user_difficulty)
                 break
@@ -49,25 +102,11 @@ def main():
         #print(secret_word)
         while guess_count > 0:
             print("You have ", guess_count, " guesses left! \n")
-            
-            if guess_count == 6:
-                print("    ____     \n   |    |   \n   |    |         \n   |         \n   |         \n   |         \n  _|_        \n |   |______ \n |          |\n |__________| ")
-            elif guess_count == 5:
-                print("    ____     \n   |    |   \n   |    |         \n   |    o    \n   |         \n   |         \n  _|_        \n |   |______ \n |          |\n |__________| ")
-            elif guess_count == 4:
-                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |    |   \n   |         \n  _|_        \n |   |______ \n |          |\n |__________| ")
-            elif guess_count == 3:
-                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|   \n   |        \n  _|_        \n |   |______ \n |          |\n |__________| ")
-            elif guess_count == 2:
-                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|\   \n   |        \n  _|_        \n |   |______ \n |          |\n |__________| ")
-            elif guess_count == 1:
-                print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|\   \n   |   /    \n  _|_        \n |   |______ \n |          |\n |__________| ")
-            
-
+            draw_trap(guess_count)
             word_choice = ''
         
             while not (word_choice == 'y' or word_choice == 'yes' or word_choice == 'n' or word_choice == 'no'):
-                word_choice = input("Would you like to guess the word? (y or n) ")
+                word_choice = input("Would you like to guess the word? (yes or no) ")
             if word_choice == 'y' or word_choice == 'yes':
                 word_guess = input("What is your guess for the word? ")
                 if word_guess.lower() == secret_word:
@@ -87,7 +126,7 @@ def main():
                 player_choice=player_choice.lower()
             # handles the letter the player inputted, outputs the new string of correct_previous_guesses, incorrect_previous_guesses, and updated guess_count
             correct_previous_guesses, incorrect_previous_guesses, guess_count = player_letter(secret_word,player_choice,correct_previous_guesses,incorrect_previous_guesses,guess_count)
-            display(secret_word,correct_previous_guesses)
+            display_board(secret_word,correct_previous_guesses)
             # sorts, and then returns the incorrect guesses back into the string
             print("Incorrect Previous Guesses: ", ''.join(sorted(incorrect_previous_guesses)))
             # set() used to handle repeated letters, checks if each letter corresponds with correctly guesses letters
@@ -96,12 +135,12 @@ def main():
                 break
                 
         if guess_count == 0:
-            print("    ____     \n   |    |   \n   |    |         \n   |    o   \n   |   /|\   \n   |   / \    \n  _|_        \n |   |______ \n |          |\n |__________| ")
+            print("|~~~~~~~~~~~~~~~~~~~~~~~~~~|\n|~~~~~~~~~~~~O~~~~~~~~~~~~~|\n|~~~~~~~~~~~/|\~~~~~~~~~~~~|\n|~~~~~~~~~~/~|~\~~~~~~~~~~~|\n|~~~~~~~~~~~/~\~~~~~~~~~~~~|\n|~~~~~~~~~~/~~~\~~~~~~~~~~~|")
             print("You lose! The word was", secret_word)
-        
-        play = input("Do you want to play again? (y or n) ")
+        player_score(FILE, username, user_difficulty, guess_count)
+        play = input("Do you want to play again? (yes or no) ")
         while not (play == 'y' or play == 'yes' or play == 'n' or play == 'no'):
-            play = input("Do you want to play again? (y or n) ")
+            play = input("Do you want to play again? (yes or no) ")
     
 
 if __name__ == '__main__':
